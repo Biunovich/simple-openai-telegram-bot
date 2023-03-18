@@ -4,15 +4,16 @@ import sys
 
 import openai
 from dotenv import load_dotenv
-from telegram import Update
-from telegram.ext import Application, ContextTypes, MessageHandler, filters
+from telegram import ForceReply, Update
+from telegram.ext import (Application, CommandHandler, ContextTypes,
+                          MessageHandler, filters)
 
 logging.basicConfig(
-    filename='bot.log',
-    encoding='utf-8',
+    filename="bot.log",
+    encoding="utf-8",
     level=logging.INFO,
-    format='%(asctime)s %(levelname)s:%(message)s',
-    datefmt='%m/%d/%Y %H:%M:%S')
+    format="%(asctime)s %(levelname)s:%(message)s",
+    datefmt="%m/%d/%Y %H:%M:%S")
 logger = logging.getLogger("Bot")
 load_dotenv()
 
@@ -48,11 +49,23 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(reply)
     append_message(messages, "assistant", reply)
     logger.info("username=%s, history (last 3 messages)=%s",
-                username, list(map(lambda x: "{}:{}".format(
-                    x["role"], x["content"][:100]), messages[-3:]))
+                username, list(
+                    map(lambda x: f"{x['role']}:{x['content'][:100]}", messages[-3:]))
                 )
+
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.message.from_user.username
+    await update.message.reply_text(f"Welcome {user} to the simple OpenAI chat bot!")
+
+
+async def clean(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["messages"] = []
+    await update.message.reply_text(f"Message history was cleaned!")
 
 application = Application.builder().token(telegram_token).build()
 application.add_handler(MessageHandler(
     filters.TEXT & ~filters.COMMAND, handle_message))
+application.add_handler(CommandHandler("start", start))
+application.add_handler(CommandHandler("clean", clean))
 application.run_polling()
