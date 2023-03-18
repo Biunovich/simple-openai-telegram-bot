@@ -1,0 +1,11 @@
+version: '3.9'
+
+services:
+  simple_openai_telegram_bot:
+    image: biunovich/simple_openai_telegram_bot:latest
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+    ports:
+      - 8081:8081

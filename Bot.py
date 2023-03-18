@@ -9,7 +9,7 @@ from telegram.ext import (Application, CommandHandler, ContextTypes,
                           MessageHandler, filters)
 
 logging.basicConfig(
-    filename="bot.log",
+    filename="logs/bot.log",
     encoding="utf-8",
     level=logging.INFO,
     format="%(asctime)s %(levelname)s:%(message)s",
