@@ -32,8 +32,9 @@ def append_message(messages, role, message):
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    username = update.message.from_user.username
+    name = update.message.from_user.first_name
     message = update.message.text
+    user_id = str(update.message.from_user.id)
 
     messages = context.user_data.setdefault("messages", [])
     if (len(messages) == 0):
@@ -43,20 +44,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         model="gpt-3.5-turbo",
         messages=messages,
         temperature=0.5,
-        user=username
+        user=user_id
     )
     reply = response.choices[0].message.content
     await update.message.reply_text(reply)
     append_message(messages, "assistant", reply)
-    logger.info("username=%s, history (last 3 messages)=%s",
-                username, list(
+    logger.info("name='%s' user_id=%s, history (last 3 messages)=%s",
+                name, user_id, list(
                     map(lambda x: f"{x['role']}:{x['content'][:100]}", messages[-3:]))
                 )
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.message.from_user.username
-    await update.message.reply_text(f"Welcome {user} to the simple OpenAI chat bot!")
+    name = update.message.from_user.first_name
+    await update.message.reply_text(f"Welcome {name} to the simple OpenAI chat bot!")
 
 
 async def clean(update: Update, context: ContextTypes.DEFAULT_TYPE):
