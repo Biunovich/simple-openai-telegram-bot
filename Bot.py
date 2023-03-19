@@ -21,7 +21,7 @@ telegram_token = os.environ.get("TELEGRAM_TOKEN")
 openai_api_key = os.environ.get("OPENAI_API_KEY")
 
 if telegram_token is None or openai_api_key is None:
-    print("No environment variables were found")
+    logger.error("No environment variables were found")
     sys.exit()
 
 openai.api_key = openai_api_key
