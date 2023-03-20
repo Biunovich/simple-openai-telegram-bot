@@ -1,6 +1,8 @@
 # Simple OpenAI Telegram Bot
 This is telegram bot for OpenAI chat functionality
 
+Telegram Bot https://t.me/simple_openai_telegram_bot
+
 # How to use
 Just create `.env` file and setup Telegram bot token and OpenAI token
 ### Example:
