@@ -4,7 +4,6 @@ import sys
 
 import openai
 from dotenv import load_dotenv
-from openai import error
 from telegram import Update
 from telegram.ext import (Application, CommandHandler, ContextTypes,
                           MessageHandler, filters)
@@ -31,7 +30,7 @@ if telegram_token is None or openai_api_key is None:
     logger.error("No environment variables were found")
     sys.exit()
 
-openai.api_key = openai_api_key
+openai_client = openai.AsyncOpenAI(api_key=openai_api_key, timeout=30)
 
 
 def append_message(messages, role, message):
@@ -48,12 +47,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         append_message(messages, "system", "You are a helpful assistant")
     append_message(messages, "user", message)
     try:
-        response = await openai.ChatCompletion.acreate(
+        response = await openai_client.chat.completions.create(
             model="gpt-4-turbo-preview",
             messages=messages,
-            temperature=0.5,
-            user=user_id,
-            request_timeout=30
+            user=user_id
         )
         reply = response.choices[0].message.content
         await update.message.reply_text(reply)
@@ -62,7 +59,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     name, user_id, list(
                         map(lambda x: f"{x['role']}:{x['content'][:100]}", messages[-3:]))
                     )
-    except error.APIConnectionError as e:
+    except openai.APIConnectionError as e:
         logger.error(repr(e))
         if (e.code == "context_length_exceeded"):
             context.user_data["messages"] = []
