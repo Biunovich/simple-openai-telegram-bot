@@ -82,7 +82,7 @@ async def clean(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["messages"] = []
     await update.message.reply_text("Message history was cleaned!")
 
-application = Application.builder().token(telegram_token).build()
+application = Application.builder().token(telegram_token).concurrent_updates(True).build()
 application.add_handler(
     MessageHandler(filters.TEXT & ~filters.COMMAND & filters.User(user_id=allowed_users, allow_empty=True), handle_message)
 )
