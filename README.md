@@ -9,4 +9,5 @@ Just create `.env` file and setup Telegram bot token and OpenAI token
 ```
 OPENAI_API_KEY=open-ai-token
 TELEGRAM_TOKEN=telegram-bot-token
+ALLOWED_USERS=id1,id2 // optional
 ```

@@ -20,6 +20,12 @@ load_dotenv()
 
 telegram_token = os.environ.get("TELEGRAM_TOKEN")
 openai_api_key = os.environ.get("OPENAI_API_KEY")
+allowed_users = os.environ.get("ALLOWED_USERS")
+
+if allowed_users is None:
+    logger.warning("Any user can send messages to this bot")
+else:
+    allowed_users = list(map(int, allowed_users.split(",")))
 
 if telegram_token is None or openai_api_key is None:
     logger.error("No environment variables were found")
@@ -43,7 +49,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     append_message(messages, "user", message)
     try:
         response = await openai.ChatCompletion.acreate(
-            model="gpt-3.5-turbo",
+            model="gpt-4-turbo-preview",
             messages=messages,
             temperature=0.5,
             user=user_id,
@@ -77,11 +83,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def clean(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["messages"] = []
-    await update.message.reply_text(f"Message history was cleaned!")
+    await update.message.reply_text("Message history was cleaned!")
 
 application = Application.builder().token(telegram_token).build()
-application.add_handler(MessageHandler(
-    filters.TEXT & ~filters.COMMAND, handle_message))
+application.add_handler(
+    MessageHandler(filters.TEXT & ~filters.COMMAND & filters.User(user_id=allowed_users, allow_empty=True), handle_message)
+)
 application.add_handler(CommandHandler("start", start))
 application.add_handler(CommandHandler("clean", clean))
 application.run_polling()
