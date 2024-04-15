@@ -6,7 +6,7 @@ import openai
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import (Application, CommandHandler, ContextTypes,
-                          MessageHandler, filters)
+                          MessageHandler, filters, AIORateLimiter)
 
 logging.basicConfig(
     filename="logs/bot.log",
@@ -48,7 +48,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     append_message(messages, "user", message)
     try:
         response = await openai_client.chat.completions.create(
-            model="gpt-4-turbo-preview",
+            model="gpt-4-turbo",
             messages=messages,
             user=user_id
         )
@@ -82,7 +82,7 @@ async def clean(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["messages"] = []
     await update.message.reply_text("Message history was cleaned!")
 
-application = Application.builder().token(telegram_token).concurrent_updates(True).build()
+application = Application.builder().token(telegram_token).rate_limiter(AIORateLimiter()).build()
 application.add_handler(
     MessageHandler(filters.TEXT & ~filters.COMMAND & filters.User(user_id=allowed_users, allow_empty=True), handle_message)
 )
