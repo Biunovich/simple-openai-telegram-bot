@@ -33,14 +33,15 @@ if telegram_token is None or openai_api_key is None:
 openai_client = openai.AsyncOpenAI(api_key=openai_api_key, timeout=30)
 
 
-def append_message(messages, role, message):
+def append_message(messages: list, role: str, message: str):
     messages.append({"role": role, "content": message})
 
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def process_message(context: ContextTypes.DEFAULT_TYPE):
+    update: Update = context.job.data
+    user_id = str(context.job.user_id)
     name = update.message.from_user.first_name
     message = update.message.text
-    user_id = str(update.message.from_user.id)
 
     messages = context.user_data.setdefault("messages", [])
     if (len(messages) == 0):
@@ -70,6 +71,21 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(repr(e))
         context.user_data["messages"].pop()
+        await update.message.reply_text("Some error happened, please try to send message again")
+    finally:
+        context.user_data["processing"] = False
+
+
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+    try:
+        if context.user_data.setdefault("processing", False):
+            await update.message.reply_text("The bot has not yet answered the previous message, please try to send a message again after the bot replies")
+            return
+        context.user_data["processing"] = True
+        context.job_queue.run_custom(process_message, {}, data=update, name=str(user_id), user_id=user_id)
+    except Exception as e:
+        logger.error(repr(e))
         await update.message.reply_text("Some error happened, please try to send message again")
 
 
