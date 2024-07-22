@@ -80,7 +80,7 @@ async def process_message(context: ContextTypes.DEFAULT_TYPE):
         return
     try:
         response = await openai_client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=messages,
             user=user_id
         )
